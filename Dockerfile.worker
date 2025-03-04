@@ -1,0 +1,23 @@
+# Base image
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Create uploads directory
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
+
+# Copy worker code
+COPY worker ./worker
+
+# Set user
+USER node
+
+# Start worker
+CMD ["node", "worker/log-processor.js"]
+
