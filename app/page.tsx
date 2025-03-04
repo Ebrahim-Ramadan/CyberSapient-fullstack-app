@@ -1,101 +1,105 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import { FileText, AlertCircle } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import FileUpload from "@/components/file-upload"
+import LogStats from "@/components/log-stats"
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  return (
+    <main className="flex min-h-screen flex-col p-8">
+      <h1 className="text-3xl font-bold mb-8">Log File Processing System</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Log Files</CardTitle>
+            <CardDescription>
+              Upload log files for processing. Supported format: text files with timestamp, level, and message.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FileUpload
+              onUploadStart={() => {
+                setIsUploading(true)
+                setError(null)
+              }}
+              onUploadProgress={(progress) => setUploadProgress(progress)}
+              onUploadComplete={(fileName) => {
+                setIsUploading(false)
+                setUploadProgress(0)
+                setUploadedFiles((prev) => [...prev, fileName])
+              }}
+              onUploadError={(errorMsg) => {
+                setIsUploading(false)
+                setError(errorMsg)
+              }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+            {isUploading && (
+              <div className="mt-4">
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-sm text-muted-foreground mt-2">Uploading... {uploadProgress}%</p>
+              </div>
+            )}
+
+            {error && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-sm text-muted-foreground">
+              Files are processed asynchronously. Results will appear in real-time.
+            </p>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Log Analytics</CardTitle>
+            <CardDescription>Real-time analytics of processed log files</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LogStats uploadedFiles={uploadedFiles} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Uploads</CardTitle>
+            <CardDescription>Recently uploaded files and their processing status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {uploadedFiles.length > 0 ? (
+              <ul className="space-y-2">
+                {uploadedFiles.map((file, index) => (
+                  <li key={index} className="flex items-center gap-2 p-2 rounded bg-muted">
+                    <FileText className="h-5 w-5 text-primary" />
+                    <span>{file}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">No files uploaded yet</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  )
 }
+
